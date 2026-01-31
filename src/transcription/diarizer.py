@@ -112,7 +112,7 @@ class SpeakerDiarizer:
         current_speaker = "SPEAKER_1"
         segment_start = 0.0
         last_was_silence = False
-        speaker_count = 1
+        silence_start = 0.0
         
         for i in range(0, len(audio) - frame_length, hop_length):
             frame = audio[i:i + frame_length]
@@ -121,21 +121,29 @@ class SpeakerDiarizer:
             time_sec = i / sr
             is_silence = energy < 0.01  # Threshold
             
-            # Speaker change on silence -> speech transition after extended silence
+            # Start of silence
+            if is_silence and not last_was_silence:
+                silence_start = time_sec
+            
+            # Speaker change on silence -> speech transition
             if last_was_silence and not is_silence:
-                if time_sec - segment_start > 2.0:  # Min segment length
+                silence_duration = time_sec - silence_start
+                
+                # Only switch speakers if there was a significant pause (e.g. > 0.8s)
+                # This helps avoid splitting the same speaker on short breaths
+                should_switch = silence_duration > 0.8
+                
+                if time_sec - segment_start > 1.0:  # Min segment length
                     segments.append(SpeakerSegment(
                         speaker=current_speaker,
                         start_time=segment_start,
-                        end_time=time_sec,
-                        confidence=0.5  # Low confidence for heuristic
+                        end_time=time_sec - silence_duration,
+                        confidence=0.6 if should_switch else 0.8
                     ))
                     
-                    # Alternate speaker (simple 2-speaker model)
-                    if current_speaker == "SPEAKER_1":
-                        current_speaker = "SPEAKER_2"
-                    else:
-                        current_speaker = "SPEAKER_1"
+                    if should_switch:
+                        # Toggle speaker
+                        current_speaker = "SPEAKER_2" if current_speaker == "SPEAKER_1" else "SPEAKER_1"
                     
                     segment_start = time_sec
             
