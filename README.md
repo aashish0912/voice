@@ -13,7 +13,11 @@ This project implements a **streaming pipeline** for processing conference call 
 5. **Speaker Diarization** - Identifies speakers (Management vs Analyst)
 
 ## 📊 Dashboard
-![Dashboard Preview](outputs/dashboard_preview.png)
+### Overview
+![Dashboard Overview](outputs/dashboard_overview.png)
+
+### Details & Transcript
+![Dashboard Details](outputs/dashboard_details.png)
 
 ## High-Level Architecture
 
