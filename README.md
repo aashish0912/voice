@@ -112,6 +112,7 @@ python main.py serve --port 8000
 - Audio is in supported format (WAV preferred, MP3 needs ffmpeg)
 - English language (can switch to Hindi with minor changes)
 - Internet not required (local Whisper model)
+- **Overlapping Speech**: If two voices mix or talk over each other, the system may label the speaker as "Unknown".
 
 ### Tradeoffs
 
