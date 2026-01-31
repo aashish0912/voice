@@ -107,6 +107,9 @@ python main.py process data/samples/sample.wav --chunk-duration 5
 
 # Start API server
 python main.py serve --port 8000
+
+# Launch Streamlit dashboard
+python -m streamlit run dashboard.py
 ```
 
 ## Assumptions & Tradeoffs
