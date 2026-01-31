@@ -10,6 +10,7 @@ This project implements a **streaming pipeline** for processing conference call 
 2. **Real-time Transcription** - Uses Whisper for speech-to-text
 3. **Insight Detection** - Pattern-based extraction of financial signals
 4. **Live Console Output** - Formatted streaming display
+5. **Speaker Diarization** - Identifies speakers (Management vs Analyst)
 
 ## High-Level Architecture
 
@@ -30,6 +31,7 @@ This project implements a **streaming pipeline** for processing conference call 
 | Audio Utils | `src/utils/audio_utils.py` | Load, chunk, and convert audio files |
 | Transcriber | `src/transcription/transcriber.py` | Speech-to-text using faster-whisper or openai-whisper |
 | Detector | `src/insights/detector.py` | Extract financial insights via regex patterns |
+| Diarizer | `src/transcription/diarizer.py` | Speaker identification (pyannote + fallback) |
 | Streamer | `src/streaming/streamer.py` | Console output with rich formatting |
 
 ## How Streaming Works
