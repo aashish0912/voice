@@ -73,3 +73,6 @@ data/uploads/
 
 # Docker
 .docker/
+
+outputs/
+.env
