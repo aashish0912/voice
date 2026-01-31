@@ -17,7 +17,7 @@ This project implements a **streaming pipeline** for processing conference call 
 ![Dashboard Overview](outputs/dashboard_overview.png)
 
 ### Details & Transcript
-![Dashboard Details](outputs/dashboard_details.png)
+![Dashboard Details]
 
 ## High-Level Architecture
 
