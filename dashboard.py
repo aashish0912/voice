@@ -97,7 +97,7 @@ with col1:
         
         with transcript_container:
             for t in transcripts:
-                speaker = t.get("speaker", "Unknown")
+                speaker = t.get("speaker") or "Unknown" # Handle None
                 speaker_color = "blue" if "SPEAKER_1" in speaker or "Management" in speaker else "green"
                 
                 start_fmt = time.strftime('%M:%S', time.gmtime(t['start_time']))
