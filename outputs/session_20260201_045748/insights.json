@@ -1,0 +1,16 @@
+[
+  {
+    "type": "growth",
+    "text": "Growth signal: up 20%",
+    "sentiment": "neutral",
+    "timestamp": 6.0,
+    "confidence": 0.7
+  },
+  {
+    "type": "risk",
+    "text": "Risk factor: pressure",
+    "sentiment": "neutral",
+    "timestamp": 16.0,
+    "confidence": 0.7
+  }
+]
