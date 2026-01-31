@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./src:/app/src:ro
+      - ./data:/app/data:ro
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - CHUNK_DURATION_SECONDS=${CHUNK_DURATION_SECONDS:-5}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Development mode with hot reload
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv  # Don't mount venv from host
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - CHUNK_DURATION_SECONDS=${CHUNK_DURATION_SECONDS:-5}
+    profiles:
+      - dev
