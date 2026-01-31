@@ -1,0 +1,44 @@
+[
+  {
+    "start_time": 0.0,
+    "end_time": 10.0,
+    "text": "Good morning everyone, this is the CEO speaking. We had a fantastic quarter with revenue up 20% here one year.",
+    "confidence": 0.85,
+    "speaker": "SPEAKER_1"
+  },
+  {
+    "start_time": 10.0,
+    "end_time": 20.0,
+    "text": "Hi, this is analyst form JP Morgan. Could you comment on the margin pressure due to raw material costs?",
+    "confidence": 0.85,
+    "speaker": "SPEAKER_2"
+  },
+  {
+    "start_time": 20.0,
+    "end_time": 30.0,
+    "text": "Sure, while costs have risen, we offset them with price hikes.",
+    "confidence": 0.85,
+    "speaker": "SPEAKER_1"
+  },
+  {
+    "start_time": 30.0,
+    "end_time": 40.0,
+    "text": "TDE margins remain healthy at 25%.  That is helpful, thank you.  One more",
+    "confidence": 0.85,
+    "speaker": null
+  },
+  {
+    "start_time": 40.0,
+    "end_time": 50.0,
+    "text": "question on the new plant expansion. The new plant in Gujarat will be operational by Q4.",
+    "confidence": 0.85,
+    "speaker": null
+  },
+  {
+    "start_time": 50.0,
+    "end_time": 57.5995625,
+    "text": "we expected to add 500 crores to our top line.",
+    "confidence": 0.85,
+    "speaker": "SPEAKER_1"
+  }
+]

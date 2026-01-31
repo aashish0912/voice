@@ -25,28 +25,28 @@
     "end_time": 40.0,
     "text": "Our clients don't always have good quality files, some may have background noise, some might  be in a difficult accent, some might contain terms if never heard of.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 40.0,
     "end_time": 50.0,
     "text": "but we have to provide 98-99% accuracy for all of our clients.  We've tried to make sure that our communication with employees and employers",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": null
   },
   {
     "start_time": 50.0,
     "end_time": 60.0,
     "text": "is a good one, where available on Facebook, Skype, live support, email, phone.  We answer all kinds of questions, regardless of how redundant.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 60.0,
     "end_time": 70.0,
     "text": "they are, or in some cases, even rude.  We have at least four ways of explaining how everything works.  We took to the way we communicate information.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 70.0,
@@ -67,7 +67,7 @@
     "end_time": 100.0,
     "text": "These things are so disrespectful, I can't even begin to say, you know what, it's wrong  on so many levels. I'm not over dramatic.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 100.0,
@@ -109,14 +109,14 @@
     "end_time": 160.0,
     "text": "a programmer and two jacks of all trades. We worked day in and day out. We didn't have  time off for months. We added something new every day. We did research. We advertise.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 160.0,
     "end_time": 170.0,
     "text": "we risked all of our savings for the company and it paid out.  Now we got from 20 or less transcribers to 2000.  We have over 500...",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   },
   {
     "start_time": 170.0,
@@ -130,6 +130,6 @@
     "end_time": 181.753,
     "text": "is up to them.",
     "confidence": 0.85,
-    "speaker": "SPEAKER_2"
+    "speaker": "SPEAKER_1"
   }
 ]
