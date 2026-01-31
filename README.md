@@ -14,7 +14,7 @@ This project implements a **streaming pipeline** for processing conference call 
 
 ## 📊 Dashboard
 ### Overview
-![Dashboard Overview](outputs/dashboard_overview.png)
+![Dashboard Overview]
 
 ### Details & Transcript
 ![Dashboard Details](outputs/dashboard_details.png)
