@@ -12,6 +12,9 @@ This project implements a **streaming pipeline** for processing conference call 
 4. **Live Console Output** - Formatted streaming display
 5. **Speaker Diarization** - Identifies speakers (Management vs Analyst)
 
+## 📊 Dashboard
+![Dashboard Preview](outputs/dashboard_preview.png)
+
 ## High-Level Architecture
 
 ```
@@ -62,6 +65,21 @@ The system identifies:
 - **Guidance** - Forward-looking statements
 - **Risks** - Headwinds, challenges, declines
 - **Outlook** - Positive momentum, confidence signals
+
+## 💡 AI & Insights Configuration
+
+**Current Setup: Rule-Based (No API Cost)**
+The system currently uses **Regex Pattern Matching** to extract insights (Revenue, Growth, Risks) without sending data to any external server. This ensures privacy and runs completely offline.
+
+**How to Enable LLM (GPT-4/Claude) Insights:**
+To get deeper, context-aware insights, you can enable the LLM detector:
+
+1. Obtain an API Key (OpenAI `sk-...` or Anthropic).
+2. Add it to your `.env` file:
+   ```env
+   OPENAI_API_KEY=sk-your-key-here
+   ```
+3. The system will automatically detect the key and switch to **Hybrid Mode** (Rules + LLM).
 
 ## Running the Project
 
