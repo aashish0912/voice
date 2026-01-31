@@ -129,9 +129,9 @@ class SpeakerDiarizer:
             if last_was_silence and not is_silence:
                 silence_duration = time_sec - silence_start
                 
-                # Only switch speakers if there was a significant pause (e.g. > 0.8s)
+                # Only switch speakers if there was a significant pause (e.g. > 2.0s)
                 # This helps avoid splitting the same speaker on short breaths
-                should_switch = silence_duration > 0.8
+                should_switch = silence_duration > 2.0
                 
                 if time_sec - segment_start > 1.0:  # Min segment length
                     segments.append(SpeakerSegment(
