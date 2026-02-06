@@ -1,3 +1,2 @@
-"""Insights module."""
-from .detector import InsightDetector, InsightResult, Insight
-__all__ = ["InsightDetector", "InsightResult", "Insight"]
+from .detector import InsightDetector, InsightResult
+__all__ = ["InsightDetector", "InsightResult"]

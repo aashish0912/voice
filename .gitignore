@@ -74,5 +74,5 @@ data/uploads/
 # Docker
 .docker/
 
-# outputs/ (Uncommented for demo purposes)
+outputs/
 .env

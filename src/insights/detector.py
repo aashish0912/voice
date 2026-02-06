@@ -1,153 +1,77 @@
-"""
-Insight detection from transcripts.
-Uses regex patterns + optional LLM for summaries.
-"""
-import asyncio
-import os
-import re
+import os, asyncio
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List
-from src.transcription.transcriber import TranscriptChunk
-
-
-class InsightType(Enum):
-    REVENUE = "revenue"
-    GROWTH = "growth"
-    RISK = "risk"
-    GUIDANCE = "guidance"
-    TOPIC = "topic"
-
-
-class Sentiment(Enum):
-    POSITIVE = "positive"
-    NEGATIVE = "negative"
-    NEUTRAL = "neutral"
-
-
-@dataclass
-class Insight:
-    type: InsightType
-    text: str
-    sentiment: Sentiment = Sentiment.NEUTRAL
-    confidence: float = 0.7
-    timestamp: float = 0.0
-
 
 @dataclass
 class InsightResult:
-    chunk: TranscriptChunk
-    insights: List[Insight] = field(default_factory=list)
-    rolling_summary: str = ""
-
-
-# keyword patterns
-PATTERNS = {
-    InsightType.REVENUE: re.compile(r'revenue|sales|profit|earnings|income', re.I),
-    InsightType.GROWTH: re.compile(r'\d+%|percent|growth|increase|grew', re.I),
-    InsightType.RISK: re.compile(r'risk|decline|challenge|issue|problem|concern', re.I),
-    InsightType.GUIDANCE: re.compile(r'expect|plan|goal|target|forecast|next', re.I),
-    InsightType.TOPIC: re.compile(r'about|discuss|talk|mention|point|saying', re.I),
-}
-
-POSITIVE_WORDS = {'good', 'great', 'growth', 'increase', 'strong', 'positive', 'better', 'success'}
-NEGATIVE_WORDS = {'bad', 'decline', 'risk', 'weak', 'concern', 'issue', 'problem', 'difficult'}
-
+    chunk: object; insights: list = field(default_factory=list); rolling_summary: str = ""
 
 class InsightDetector:
-    def __init__(self, use_llm=True):
-        self.insights = []
-        self.summary = ""
-        self.text_buffer = []
-        self.llm = None
-        self.model = ""
+    def __init__(self):
+        self.insights, self.summary, self.full_text, self.batch = [], "", [], []
+        self.llm = self._setup_llm()
         
-        if use_llm:
-            self._setup_llm()
-    
     def _setup_llm(self):
+        try: from openai import AsyncOpenAI
+        except: return None
+        
+        keys = [("GROQ", "https://api.groq.com/openai/v1"), ("OPENROUTER", "https://openrouter.ai/api/v1"), ("OPENAI", None)]
+        for k, url in keys:
+            if os.getenv(f"{k}_API_KEY"):
+                return AsyncOpenAI(base_url=url, api_key=os.getenv(f"{k}_API_KEY"))
+        return None
+
+    async def analyze(self, chunk):
+        self.full_text.append(chunk.text); self.batch.append(chunk.text)
+        insights, summary = [], self.summary
+        
+        if len(self.batch) >= (2 if not self.summary else 10):
+            insights = await self._call_llm(f"Extract insights (REVENUE, GROWTH, RISK, GUIDANCE, KEY_POINT) from: {' '.join(self.batch)}\nOnly output found info. Format: TYPE: text", 3)
+            summary = await self._call_llm(f"Summarize this in 2-3 sentences:\n{' '.join(self.full_text)[-4000:]}", 1, is_summary=True)
+            
+            parsed = self._parse(insights)
+            self.insights.extend(parsed)
+            self.summary = summary if summary else self.summary
+            self.batch = []
+            
+        return InsightResult(chunk, self._parse(insights, 3), self.summary)
+
+    async def get_final_summary(self, text):
+        if not self.llm or not text: return {"summary": "No summary", "insights": []}
+        
+        summary = await self._call_llm(f"Detailed 3-5 paragraph summary of:\n{text[:15000]}", 1, is_summary=True)
+        insights = await self._call_llm(f"List key insights (KEY_POINT, RISK, GROWTH, REVENUE) for:\n{text[:10000]}\nOnly output if mentioned.\nFormat: TYPE: text", 15)
+        
+        final_insights = self._parse(insights)
+        if not final_insights and self.insights: final_insights = self.insights
+        
+        return {"summary": summary, "insights": final_insights}
+
+    def _parse(self, lines, limit=None):
+        res = []
+        skip_phrases = ["none", "no specific", "not mentioned", "n/a", "no information", "no revenue", "no growth", "no risk"]
+        for l in lines:
+            if ":" not in l: continue
+            t, txt = l.split(":", 1)
+            t = t.strip("* -").upper()
+            txt_clean = txt.strip()
+            
+            if t in ["REVENUE", "GROWTH", "RISK", "GUIDANCE", "KEY_POINT"] and txt_clean:
+                if not any(p in txt_clean.lower() for p in skip_phrases):
+                    res.append({"type": t, "text": txt_clean})
+        return res[:limit] if limit else res
+
+    async def _call_llm(self, prompt, lines=1, is_summary=False):
+        if not self.llm: return "" if is_summary else []
+        
+        # Default model logic
+        model = os.getenv("GROQ_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
+        if "api.groq.com" not in str(self.llm.base_url):
+            model = "gpt-3.5-turbo"
+            
         try:
-            from openai import AsyncOpenAI
-        except ImportError:
-            return
-        
-        groq_key = os.getenv("GROQ_API_KEY")
-        openrouter_key = os.getenv("OPENROUTER_API_KEY")
-        openai_key = os.getenv("OPENAI_API_KEY")
-        
-        if groq_key:
-            self.llm = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=groq_key)
-            self.model = os.getenv("GROQ_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
-        elif openrouter_key:
-            self.llm = AsyncOpenAI(base_url="https://openrouter.ai/api/v1", api_key=openrouter_key)
-            self.model = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
-        elif openai_key:
-            self.llm = AsyncOpenAI(api_key=openai_key)
-            self.model = "gpt-3.5-turbo"
-    
-    async def analyze(self, chunk: TranscriptChunk) -> InsightResult:
-        found = self._find_insights(chunk.text)
-        self.insights.extend(found)
-        
-        self.text_buffer.append(chunk.text)
-        limit = 2 if not self.summary else 10
-        
-        if len(self.text_buffer) >= limit:
-            self.summary = await self._get_summary()
-            self.text_buffer = []
-        
-        return InsightResult(chunk=chunk, insights=found, rolling_summary=self.summary)
-    
-    def _find_insights(self, text):
-        results = []
-        words = set(text.lower().split())
-        
-        for itype, pattern in PATTERNS.items():
-            match = pattern.search(text)
-            if match:
-                if words & POSITIVE_WORDS:
-                    sent = Sentiment.POSITIVE
-                elif words & NEGATIVE_WORDS:
-                    sent = Sentiment.NEGATIVE
-                else:
-                    sent = Sentiment.NEUTRAL
-                
-                results.append(Insight(
-                    type=itype,
-                    text=match.group(),
-                    sentiment=sent
-                ))
-        
-        return results
-    
-    async def _get_summary(self):
-        if not self.llm:
-            return self.summary
-        
-        new_text = " ".join(self.text_buffer)
-        prompt = f'Update this summary with new info. Keep it short (2-3 sentences).\n\nCurrent: "{self.summary}"\n\nNew text: "{new_text}"\n\nUpdated summary:'
-        
-        for i in range(3):
-            try:
-                resp = await self.llm.chat.completions.create(
-                    model=self.model,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=150
-                )
-                return resp.choices[0].message.content.strip()
-            except Exception as e:
-                if "429" in str(e):
-                    await asyncio.sleep(2 ** (i + 1))
-                else:
-                    break
-        
-        return self.summary
-    
-    def get_final_summary(self):
-        if not self.insights:
-            return "No key points found."
-        
-        lines = ["Key Points:"]
-        for ins in self.insights[:10]:
-            lines.append(f"  - {ins.type.value}: {ins.text}")
-        return "\n".join(lines)
+            resp = await self.llm.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}], max_tokens=600)
+            text = resp.choices[0].message.content.strip()
+            return text if is_summary else [l.strip() for l in text.split("\n")]
+        except: return "" if is_summary else []

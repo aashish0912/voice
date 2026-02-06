@@ -1,68 +1,39 @@
-"""
-Output handlers for transcription results.
-Console output and JSON file export.
-"""
 import json
 from datetime import datetime
 from pathlib import Path
-from src.insights.detector import InsightResult
-from src.transcription.transcriber import TranscriptChunk
-
 
 class ConsoleStreamer:
-    async def stream(self, chunk: TranscriptChunk, result: InsightResult = None):
-        spk = f" ({chunk.speaker})" if chunk.speaker else ""
-        print(f"\n[{chunk.start_time:.0f}s-{chunk.end_time:.0f}s]{spk}")
-        print(f'  "{chunk.text}"')
-        
-        if result and result.insights:
-            for ins in result.insights:
-                print(f"  >> {ins.type.value}: {ins.text}")
-        
-        if result and result.rolling_summary:
-            print(f"  Summary: {result.rolling_summary[:100]}...")
-    
-    async def stream_summary(self, text):
-        print(f"\n{'='*40}\nFINAL SUMMARY\n{'='*40}\n{text}\n")
-    
-    async def close(self):
-        pass
+    async def stream(self, chunk, result=None):
+        print(f"\n[{chunk.start_time:.0f}s-{chunk.end_time:.0f}s] {chunk.speaker or ''}\n  \"{chunk.text}\"")
+        if result:
+            for i in result.insights: print(f"  >> {i['type']}: {i['text']}")
+            if result.rolling_summary: print(f"  Summary: {result.rolling_summary[:100]}...")
 
+    async def stream_final_summary(self, res):
+        print(f"\n{'='*50}\nFINAL SUMMARY\n{'='*50}\n{res.get('summary')}")
+        for i in res.get('insights', []): print(f"  • {i['type']}: {i['text']}")
 
 class FileStreamer:
-    def __init__(self, output_dir="outputs"):
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.folder = Path(output_dir) / f"session_{timestamp}"
-        self.folder.mkdir(parents=True, exist_ok=True)
-        self.transcripts = []
-        self.insights_list = []
-    
-    async def stream(self, chunk: TranscriptChunk, result: InsightResult = None):
-        self.transcripts.append({
-            "start": chunk.start_time,
-            "end": chunk.end_time,
-            "text": chunk.text,
-            "speaker": chunk.speaker
-        })
-        
+    def __init__(self, out_dir="outputs"):
+        self.path = Path(out_dir) / f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.path.mkdir(parents=True, exist_ok=True)
+        self.data = {"transcripts": [], "insights": []}
+
+    async def stream(self, chunk, result=None):
+        self.data["transcripts"].append({"start": chunk.start_time, "end": chunk.end_time, "text": chunk.text, "speaker": chunk.speaker})
         if result:
-            for ins in result.insights:
-                self.insights_list.append({
-                    "type": ins.type.value,
-                    "text": ins.text
-                })
+            self.data["insights"].extend(result.insights)
+            if result.rolling_summary: self._save("summary.json", {"summary": result.rolling_summary, "chunks": len(self.data["transcripts"])})
         
-        self._write("transcript.json", self.transcripts)
-        self._write("insights.json", self.insights_list)
-    
-    async def stream_summary(self, text):
-        self._write("summary.json", {"summary": text})
-        full = "\n".join(t["text"] for t in self.transcripts)
-        (self.folder / "full.txt").write_text(full)
-        print(f"\nSaved to: {self.folder}")
-    
-    async def close(self):
-        pass
-    
-    def _write(self, name, data):
-        (self.folder / name).write_text(json.dumps(data, indent=2))
+        self._save("transcript.json", self.data["transcripts"])
+        self._save("insights.json", self.data["insights"])
+
+    async def stream_final_summary(self, res):
+        fin = {**res, "chunks": len(self.data["transcripts"])}
+        self._save("final_summary.json", fin)
+        self._save("summary.json", {"summary": res.get("summary"), "chunks": len(self.data["transcripts"])})
+        self._save("insights.json", res.get("insights", []))
+        (self.path / "full.txt").write_text("\n".join(t["text"] for t in self.data["transcripts"]))
+        print(f"\nSaved to: {self.path}")
+
+    def _save(self, name, data): (self.path / name).write_text(json.dumps(data, indent=2))
