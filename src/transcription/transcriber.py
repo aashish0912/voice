@@ -33,3 +33,4 @@ class StreamingTranscriber:
         if not self.model: return ""
         return await asyncio.get_event_loop().run_in_executor(None, lambda: 
             " ".join(s.text for s in self.model.transcribe(audio, language="en")[0]))
+ 

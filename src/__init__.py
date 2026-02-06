@@ -1,1 +1,1 @@
-"""Voice AI - Concall Transcription & Insights."""
+"""Voice AI - Concall Transcription & Insights.""" 

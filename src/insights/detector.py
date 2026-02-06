@@ -75,3 +75,4 @@ class InsightDetector:
             text = resp.choices[0].message.content.strip()
             return text if is_summary else [l.strip() for l in text.split("\n")]
         except: return "" if is_summary else []
+ 

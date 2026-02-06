@@ -56,3 +56,4 @@ else:
             render_summary_insights(d['summary'], d['insights'])
             st.markdown("### 📝 Transcript")
             for t in d['transcript']: st.markdown(f"**{t.get('speaker','')}** [{t['start']:.0f}s]: {t['text']}")
+ 

@@ -27,3 +27,4 @@ class SpeakerDiarizer:
             
         segments.append(SpeakerSegment(spk, start, len(audio)/sr))
         return segments
+ 

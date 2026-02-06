@@ -36,3 +36,4 @@ def main(audio: Path = typer.Argument(..., help="Audio file path"), chunk: float
 
 if __name__ == "__main__":
     typer.run(main)
+ 

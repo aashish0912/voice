@@ -37,3 +37,4 @@ class FileStreamer:
         print(f"\nSaved to: {self.path}")
 
     def _save(self, name, data): (self.path / name).write_text(json.dumps(data, indent=2))
+ 
