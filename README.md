@@ -1,168 +1,67 @@
-# Real-Time Indian Concall Transcription & Insight Streaming
+# Voice Transcription & Insights
 
-A streaming audio processing system that transcribes Indian earnings calls and extracts financial insights in real-time.
+Real-time audio transcription with insight detection using Whisper and LLM.
 
-## What I Built
+## Features
+- Audio transcription using faster-whisper
+- Keyword-based insight detection
+- LLM-powered rolling summaries (Groq/OpenRouter/OpenAI)
+- Speaker diarization
+- Streamlit dashboard
 
-This project implements a **streaming pipeline** for processing conference call audio:
-
-1. **Audio Chunking** - Splits audio into configurable segments (default 5s)
-2. **Real-time Transcription** - Uses Whisper for speech-to-text
-3. **Insight Detection** - Pattern-based extraction of financial signals
-4. **Live Console Output** - Formatted streaming display
-5. **Speaker Diarization** - Identifies speakers (Management vs Analyst)
-
-## 📊 Dashboard
-### Overview
-![Dashboard Overview](outputs/dashboard_overview.png)
-
-### Details & Transcript
-![Dashboard Details](outputs/dashboard_details.png)
-
-## High-Level Architecture
+## Architecture
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌─────────────────┐    ┌────────────┐
-│ Audio File  │───▶│ Transcriber  │───▶│ Insight Detector │───▶│  Streamer  │
-│ (WAV/MP3)   │    │  (Whisper)   │    │  (Rules + LLM)   │    │  (Console) │
-└─────────────┘    └──────────────┘    └─────────────────┘    └────────────┘
-     │                   │                     │                    │
-     │     5s chunks     │    TranscriptChunk  │    InsightResult   │
-     └───────────────────┴─────────────────────┴────────────────────┘
+Audio File → Transcriber → Insight Detector → Streamer
+   (MP3)      (Whisper)      (Regex + LLM)     (Console/File)
 ```
 
-### Components
-
-| Component | File | Purpose |
-|-----------|------|---------|
-| Audio Utils | `src/utils/audio_utils.py` | Load, chunk, and convert audio files |
-| Transcriber | `src/transcription/transcriber.py` | Speech-to-text using faster-whisper or openai-whisper |
-| Detector | `src/insights/detector.py` | Extract financial insights via regex patterns |
-| Diarizer | `src/transcription/diarizer.py` | Speaker identification (pyannote + fallback) |
-| Streamer | `src/streaming/streamer.py` | Console output with rich formatting |
-
-## How Streaming Works
-
-The system processes audio **incrementally**:
-
-1. Audio is loaded and split into chunks (configurable duration)
-2. Each chunk is transcribed asynchronously
-3. Transcripts are analyzed for insights immediately
-4. Results stream to console as they're generated
-
-This simulates real-time processing. For true live audio, the architecture supports `AsyncIterator[bytes]` input (implementation placeholder included).
-
-### Key Design Decisions
-
-- **Async/await throughout** - Non-blocking I/O for concurrent processing
-- **Generator pattern** - Memory-efficient chunk-by-chunk processing
-- **Rule-based first** - Works without API keys, LLM enhances when available
-- **Indian context** - Patterns include Rs., crores, lakhs, YoY, QoQ terminology
-
-## Insights Detected
-
-The system identifies:
-
-- **Revenue** - Rs. X crore, net sales, top line
-- **Growth** - YoY, QoQ, CAGR percentages
-- **Margins** - EBITDA, operating, gross margins
-- **Guidance** - Forward-looking statements
-- **Risks** - Headwinds, challenges, declines
-- **Outlook** - Positive momentum, confidence signals
-
-## 💡 AI & Insights Configuration
-
-**Current Setup: Rule-Based (No API Cost)**
-The system currently uses **Regex Pattern Matching** to extract insights (Revenue, Growth, Risks) without sending data to any external server. This ensures privacy and runs completely offline.
-
-**How to Enable LLM (GPT-4/Claude) Insights:**
-To get deeper, context-aware insights, you can enable the LLM detector:
-
-1. Obtain an API Key (OpenAI `sk-...` or Anthropic).
-2. Add it to your `.env` file:
-   ```env
-   OPENAI_API_KEY=sk-your-key-here
-   ```
-3. The system will automatically detect the key and switch to **Hybrid Mode** (Rules + LLM).
-
-## Running the Project
-
-### Prerequisites
+## Quick Start
 
 ```bash
-pip install -e ".[faster-whisper]"  # or [whisper] for openai-whisper
+# Install dependencies
+pip install -r requirements.txt
+
+# Set API key in .env
+GROQ_API_KEY=your_key_here
+
+# Run transcription
+python main.py data/samples/transcribing_1.mp3 -c 4
+
+# View dashboard
+streamlit run dashboard.py
 ```
-
-For audio conversion support:
-```bash
-# Windows - install ffmpeg and add to PATH
-# Or: choco install ffmpeg
-```
-
-### Usage
-
-```bash
-# Process an audio file
-python main.py process data/samples/sample.wav --chunk-duration 5
-
-# Start API server
-python main.py serve --port 8000
-
-# Launch Streamlit dashboard
-python -m streamlit run dashboard.py
-```
-
-## Assumptions & Tradeoffs
-
-### Assumptions
-
-- Audio is in supported format (WAV preferred, MP3 needs ffmpeg)
-- English language (can switch to Hindi with minor changes)
-- Internet not required (local Whisper model)
-- **Overlapping Speech**: If two voices mix or talk over each other, the system may label the speaker as "Unknown".
-
-### Tradeoffs
-
-| Choice | Benefit | Cost |
-|--------|---------|------|
-| Rule-based primary | Works offline, fast | Less nuanced than LLM |
-| 5s default chunks | Good for real-time feel | May split sentences |
-| Base Whisper model | Faster, less RAM | Lower accuracy than large |
-
-## What I Would Improve
-
-Given more time:
-
-1. **Speaker Diarization** - Distinguish management vs analysts using pyannote
-2. **Better Chunking** - Voice activity detection for natural boundaries
-3. **Hinglish Support** - Add Hindi-English code-switching detection
-4. **WebSocket Output** - Real-time browser streaming
-5. **Caching** - Store transcripts to avoid re-processing
-6. **Sentiment Timeline** - Track sentiment changes through the call
 
 ## Project Structure
 
 ```
-├── main.py                 # CLI entry point
-├── src/
-│   ├── transcription/
-│   │   └── transcriber.py  # Whisper integration
-│   ├── insights/
-│   │   └── detector.py     # Pattern matching + LLM
-│   ├── streaming/
-│   │   └── streamer.py     # Console/SSE output
-│   └── utils/
-│       └── audio_utils.py  # Audio processing helpers
-├── data/samples/           # Test audio files
-└── scripts/
-    └── generate_sample.py  # Create test audio
+main.py                    # CLI entry point
+dashboard.py               # Streamlit UI
+src/
+├── transcription/
+│   ├── transcriber.py     # Whisper transcription
+│   └── diarizer.py        # Speaker detection
+├── insights/
+│   └── detector.py        # Insight extraction + LLM summary
+├── streaming/
+│   └── streamer.py        # Console and file output
+└── utils/
+    └── audio_utils.py     # Audio loading
 ```
 
-## Testing
+## Insights Detected
 
-```bash
-pytest tests/
-```
+- Revenue, sales, profit mentions
+- Growth percentages
+- Risk indicators
+- Forward guidance
+- General topics
+
+## Requirements
+
+- Python 3.10+
+- FFmpeg (for MP3 support)
+- faster-whisper
 
 ## License
 
