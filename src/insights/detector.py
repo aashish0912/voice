@@ -24,7 +24,7 @@ class InsightDetector:
         self.full_text.append(chunk.text); self.batch.append(chunk.text)
         insights, summary = [], self.summary
         
-        if len(self.batch) >= (2 if not self.summary else 10):
+        if len(self.batch) >= (2 if not self.summary else 2):
             insights = await self._call_llm(f"Extract insights (REVENUE, GROWTH, RISK, GUIDANCE, KEY_POINT) from: {' '.join(self.batch)}\nOnly output found info. Format: TYPE: text", 3)
             summary = await self._call_llm(f"Summarize this in 2-3 sentences:\n{' '.join(self.full_text)[-4000:]}", 1, is_summary=True)
             
