@@ -1,66 +1,49 @@
-# Voice Intelligence Engine (Minimalist Edition)
+# Voice Transcription & Insight Analysis System
 
-A highly optimized, **260-line** real-time audio analysis pipeline.
-It combines **Faster Whisper** (transcription) + **Groq LLM** (live insights) into a singular, event-driven system.
+A modular, real-time AI pipeline that processes audio streams, transcribes speech, and extracts actionable business insights using Large Language Models (LLMs).
 
-![Mockup](https://via.placeholder.com/800x400?text=Voice+AI+Dashboard)
+## 🚀 Features
 
-## ⚡ Features
-
-- **Extreme Minimalism**: Entire core logic condensed to <300 lines.
-- **Real-Time Transcription**: 5s latency using `faster-whisper` (int8 quantized).
-- **Live AI Insights**: Extracts **Revenue, Growth, Risks** headers on-the-fly via Groq.
-- **Smart Summaries**: 
-  - **Rolling**: Updates every few seconds.
-  - **Final**: Generates a comprehensive 3-5 paragraph report + key insights at the end.
-- **Interactive Dashboard**: Streamlit UI with history and live view.
+- **Real-Time Transcription**: High-performance speech-to-text using `faster-whisper`.
+- **Speaker Diarization**: Automatically distinguishes between different speakers.
+- **Live Insight Detection**: Extracts key metrics (Revenue, Growth, Risks) and action items on-the-fly using Groq.
+- **Dynamic Summaries**: Generates rolling updates during the call and a comprehensive executive summary at the end.
+- **Interactive Dashboard**: Real-time visualization of transcripts and insights via Streamlit.
 
 ## 🛠️ Architecture
 
-| Module | Lines | Function |
-|--------|-------|----------|
-| `main.py` | 35 | Async event loop & CLI entry point. |
-| `transcriber.py` | 35 | Audio chunking + Whisper + Speaker Diarization. |
-| `detector.py` | 50 | LLM Insight extraction (Groq/OpenAI) + Fallback logic. |
-| `streamer.py` | 40 | JSON output writer (`outputs/`). |
-| `dashboard.py` | 50 | Real-time UI reader. |
+The system follows an event-driven pipeline architecture:
 
-**Total:** ~250 lines of Python.
+1.  **Ingestion**: Audio is processed in chunks.
+2.  **Transcription**: Speech is converted to text and tagged with speaker IDs.
+3.  **Analysis**: Text is batched and sent to the LLM for insight extraction.
+4.  **Distribution**: Results are streamed to JSON outputs and visualized in the dashboard.
 
-## 🚀 Quick Start
+## 📦 Installation
 
-1. **Install**
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+# 1. Clone the repository
+git clone https://github.com/aashish0912/voice.git
+cd voice
 
-2. **Configure Credentials**
-   ```bash
-   # .env file
-   GROQ_API_KEY=gsk_...
-   ```
+# 2. Install dependencies
+pip install -r requirements.txt
 
-3. **Run Pipeline**
-   ```bash
-   # Transcribe audio file
-   python main.py data/samples/your_audio.mp3 -c 4
-   ```
+# 3. Configure API Keys
+# Create a .env file and add your Groq API key:
+# GROQ_API_KEY=your_key_here
+```
 
-4. **View Dashboard**
-   ```bash
-   streamlit run dashboard.py
-   ```
+## ⚡ Usage
 
-## 📋 Output Format
+**1. Run the Backend Pipeline**
+```bash
+python main.py data/samples/your_file.mp3 -c 4
+```
 
-The system generates structured JSON in `outputs/session_TIMESTAMP/`:
-
-```json
-// insights.json
-[
-  { "type": "REVENUE", "text": "Q3 revenue up 20% YoY" },
-  { "type": "RISK", "text": "Supply chain headwinds expected in Q4" }
-]
+**2. Launch the Dashboard**
+```bash
+streamlit run dashboard.py
 ```
 
 ## 📝 License
