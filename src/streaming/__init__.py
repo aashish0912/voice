@@ -1,5 +1,3 @@
-"""Streaming output module for real-time results delivery."""
-
-from .streamer import BaseStreamer, ConsoleStreamer
-
-__all__ = ["BaseStreamer", "ConsoleStreamer"]
+"""Streaming output module."""
+from .streamer import ConsoleStreamer, FileStreamer
+__all__ = ["ConsoleStreamer", "FileStreamer"]
