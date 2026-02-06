@@ -18,16 +18,34 @@ class StreamingTranscriber:
         from src.utils.audio_utils import load_audio, split_into_chunks
         from src.transcription.diarizer import SpeakerDiarizer
         
+        # 1. DIARIZATION: Get accurate speaker segments first
         speakers = SpeakerDiarizer().diarize(path) if self.model else []
+        
+        # 2. LOAD AUDIO
         audio, sr = load_audio(Path(path))
         
-        for chunk, start, end in split_into_chunks(audio, sr, chunk_dur):
-            text = await self._transcribe(chunk)
-            if not text.strip(): continue
+        # 3. SMART PROCESSING: Use speaker segments if available (Pro Mode)
+        if speakers:
+            for spk in speakers:
+                # Extract specific segment audio
+                start_sample = int(spk.start_time * sr)
+                end_sample = int(spk.end_time * sr)
+                segment_audio = audio[start_sample:end_sample]
                 
-            mid = (start + end) / 2
-            spk = next((s.speaker for s in speakers if s.start_time <= mid <= s.end_time), None)
-            yield TranscriptChunk(text.strip(), start, end, speaker=spk)
+                # Transcribe
+                text = await self._transcribe(segment_audio)
+                if text.strip():
+                    yield TranscriptChunk(text.strip(), spk.start_time, spk.end_time, speaker=spk.speaker)
+                    
+        # 4. FALLBACK: Fixed chunking if Diarization failed (Safety Mode)
+        else:
+            for chunk, start, end in split_into_chunks(audio, sr, chunk_dur):
+                text = await self._transcribe(chunk)
+                if not text.strip(): continue
+                
+                mid = (start + end) / 2
+                spk = next((s.speaker for s in speakers if s.start_time <= mid <= s.end_time), None)
+                yield TranscriptChunk(text.strip(), start, end, speaker=spk)
     
     async def _transcribe(self, audio):
         if not self.model: return ""
